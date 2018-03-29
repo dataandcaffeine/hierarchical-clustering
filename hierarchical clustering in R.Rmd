@@ -1,0 +1,103 @@
+---
+title: "Homework II"
+author: "Parker Lutz"
+date: "June 15, 2017"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+#### a. Construct the dissimilarity matrix based on the Euclidian distance. 
+
+```{r a, comment=FALSE, warning=FALSE}
+clusterData <- cbind(c(1, 1, 0, 5, 6, 4), c(4, 3, 4, 1, 2, 0))
+library(cluster)
+dis_mat <- daisy(clusterData, metric = "euclidean", stand = FALSE)
+dis_mat
+
+```
+
+
+#### b. Construct the Dendrogram based on complete linkage.
+```{r b, comment=FALSE, warning=FALSE}
+comp_dend <- hclust(dis_mat, method = "complete")
+plot(comp_dend)
+```
+
+
+
+#### c. Construct the Dendrogram based on average linkage. 
+```{r c, comment=FALSE, warning=FALSE}
+avg_dend <- hclust(dis_mat, method = "average")
+plot(avg_dend)
+```
+
+
+#### d. Calculate the CH index for the K-means clustering with K=2
+```{r d, comment=FALSE, warning=FALSE}
+library(fpc)
+km <- kmeans(clusterData,2)
+calinhara(clusterData,km$cluster)
+```
+
+
+
+#### Complete Question 9 on page 416, "An introduction to Statistical Learning". 
+#### In addition, perform the K-means clustering and choose K according to the CH index. 
+#### Using the command "table", compare the result with what you find from the Hierarchical clustering 
+#### in part (a) (cutting the dendrogram at the same number of clusters).
+
+#### a) Using hierarchical clustering with complete linkage and Euclidean distance, cluster the states.
+```{r 9a, comment=FALSE, warning=FALSE}
+set.seed(2)
+hc_all <- hclust(dist(USArrests), method = "complete")
+plot(hc_all)
+```
+
+#### b) Cut the dendrogram at a height that results in three distinct clusters. Which states belong to which clusters ?
+```{r 9b, comment=FALSE, warning=FALSE}
+cut3 <- cutree(hc_all, 3)
+cut3
+```
+
+#### C) Hierachically cluster the states using complete linkage and Euclidean distance, after scaling the variables to have standard deviation one.
+```{r 9c, comment=FALSE, warning=FALSE}
+data_scaled <- scale(USArrests)
+hc_sd <- hclust(dist(data_scaled), method = "complete")
+plot(hc_sd)
+```
+
+
+#### d) What effect does scaling the variables have on the hierarchical clustering obtained ? In your opinion, 
+#### should the variables be scaled before the inter-observation dissimilarities are computed ? Provide a justification for your answer.
+```{r 9d, comment=FALSE, warning=FALSE}
+cut <- cutree(hc_sd, 3)
+table(cutree(hc_all, 3), cutree(hc_sd, 3))
+```
+
+
+#### It is important to scale the variables so they have the same mean and variance since they have are in different units.
+
+
+
+```{r other, comment=FALSE, warning=FALSE}
+ch_df <- data.frame()
+
+for(i in 2:10){
+  km <- kmeans(USArrests, centers=i)
+    ch_df<- rbind(ch_df, cbind(i, calinhara(USArrests,km$cluster)))
+}
+names(ch_df) <- c("cluster", "ch")
+plot(ch_df, type='l')
+
+table(cutree(hc_all, 6), kmeans(USArrests, centers=6)$cluster)
+
+```
+
+#### The best number of clusters is 6. The table shows that the hclust and kmeans algorithms cluster the states quite differently since the diagonal is mostly 0.
+
+
+
+
+
